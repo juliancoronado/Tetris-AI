@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-# Very simple tetris implementation
-# Testing push!
+# Location of current file: C:\Users\Julian Coronado\Documents\GitHub\481project>
+
+# Simple tetris implementation
+# 
 # Control keys:
-# Down - Drop stone faster
-# Left/Right - Move stone
-# Up - Rotate Stone clockwise
-# Escape - Quit game
+# Down - Drop block faster
+# Left/Right - Move block
+# Up - Rotate block clockwise
+# Esc - Quit game
 # P - Pause game
 #
 # Have fun!
@@ -64,22 +66,22 @@ grid = [
 
 # The configuration
 config = {
-	'cell_size':	20,
-	'cols':		8,
-	'rows':		16,
-	'delay':	750,
-	'maxfps':	30
+	'cell_size': 25,
+	'cols': 8,
+	'rows':	16,
+	'delay': 750,
+	'maxfps': 30
 }
 
 colors = [
-(0,   0,   0  ),
-(255, 0,   0  ),
-(0,   150, 0  ),
-(0,   0,   255),
-(255, 120, 0  ),
-(255, 255, 0  ),
-(180, 0,   255),
-(0,   220, 220)
+(0, 0, 0),
+(255, 0, 0),
+(0, 150, 0),
+(0, 0, 255),
+(255, 120, 0),
+(255, 255, 0),
+(180, 0, 255),
+(0, 220, 220)
 ]
 
 tetris_shapes = [
@@ -103,6 +105,7 @@ tetris_shapes = [
 	[[7, 7],
 	 [7, 7]]
 ]
+
 '''
 tetris_shapes = {
 	'I': [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
@@ -121,6 +124,7 @@ current_shape = {
 	'y': 0, 
 	'shape': None
 }
+
 bag = []
 bag_index = 0
 score = 500
@@ -136,14 +140,15 @@ move_limit = 500
 move_algorithm = []
 inspect_move_selection = False
 
-# LOCALSTORAGE - may not be needed
+# LOCALSTORAGE - probably won't be needed
 storage = None
 
 def storing(stringed_archive):
     storage = { 'archive': stringed_archive }
 
 # GENETIC ALGO VALUES
-population = 50 #number of genomes
+# number of genomes
+population = 50
 genomes = []
 current_genome = -1
 generation = 0
@@ -158,8 +163,8 @@ mutation_step = 0.2  # interval to mutation rate
 
 def initialize_population():
     archive['population_size'] = population
-#    next_shape()
-#    apply_shape()
+    # next_shape()
+    # apply_shape()
     save_state = get_state()
     round_state = get_state()
     create_initial_population()
@@ -184,17 +189,18 @@ def evaluate_next_genome():
     current_genome = current_genome + 1
     if current_genome == len(genomes):
         evolve()
-#    load_state(round_state)
+    # load_state(round_state)
     moves_taken = 0
     make_next_move()
 
 # CROSSOVER
-def evolve(): # new generation
+# new generation
+def evolve():
     current_genome = 0
     generation = generation + 1
-#    reset_game()
+    # reset_game()
     round_state = get_state()
-    genomes = sorted(genomes, key=lambda k: k['fitness'])
+    genomes = sorted(genomes, key = lambda k: k['fitness'])
     archive['elites'].append(clone(genomes[0]))
     print("Elite's fitness:", genomes[0].fitness)
 
@@ -219,7 +225,8 @@ def evolve(): # new generation
 
 # MUTATION
 def make_child(parent1, parent2):
-    child = { #either inherit from first parent or second parent
+    # inherit from first parent or second parent randomly
+    child = {
         'id': uniform(0, 1),
         'rows_cleared': random_choice(parent1['rows_cleared'], parent2['rows_cleared']),
         'height_weight': random_choice(parent1['height_weight'], parent2['height_weight']),
@@ -400,6 +407,7 @@ def move_down():
         'moved': True,
         'rows_cleared': 0
     }
+
     remove_shape()
     current_shape['y'] = current_shape['y'] + 1
     
@@ -548,7 +556,7 @@ def transpose(array):
 
 # Stopping at output - need to figure out if we are changing our presentation of the project
 
-# READ ME - IMPORTANT INFORMATION:
+# README - IMPORTANT INFORMATION:
 # From this point on is the PyGame implementation to get Tetris to work WITHOUT
 # the algorithm implemented.
 # The next step for us to do from this point is to somehow integrate the algo
@@ -556,8 +564,8 @@ def transpose(array):
 # PyGame implementation and can come up with another using the one above.
 
 def rotate_clockwise(shape):
-	return [ [ shape[y][x]
-			for y in range(len(shape)) ]
+	return [[shape[y][x]
+			for y in range(len(shape))]
 		for x in range(len(shape[0]) - 1, -1, -1) ]
 
 def check_collision(board, shape, offset):
@@ -579,13 +587,13 @@ def join_matrixes(mat1, mat2, mat2_off):
 	off_x, off_y = mat2_off
 	for cy, row in enumerate(mat2):
 		for cx, val in enumerate(row):
-			mat1[cy+off_y-1	][cx+off_x] += val
+			mat1[cy+off_y-1][cx+off_x] += val
 	return mat1
 
 def new_board():
-	board = [ [ 0 for x in range(config['cols']) ]
+	board = [[0 for x in range(config['cols'])]
 			for y in range(config['rows']) ]
-	board += [[ 1 for x in range(config['cols'])]]
+	board += [[1 for x in range(config['cols'])]]
 	return board
 
 class TetrisApp(object):
@@ -596,10 +604,8 @@ class TetrisApp(object):
 		self.height = config['cell_size']*config['rows']
 		
 		self.screen = pygame.display.set_mode((self.width, self.height))
-		pygame.event.set_blocked(pygame.MOUSEMOTION) # We do not need
-		                                             # mouse movement
-		                                             # events, so we
-		                                             # block them.
+        # we do not need mouse move events, so they are blocked
+		pygame.event.set_blocked(pygame.MOUSEMOTION)
 		self.init_game()
 	
 	def new_stone(self):
