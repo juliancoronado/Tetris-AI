@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 # Very simple tetris implementation
-# 
+# Testing push!
 # Control keys:
 # Down - Drop stone faster
 # Left/Right - Move stone
