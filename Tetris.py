@@ -336,7 +336,7 @@ def get_all_possible_moves():
 					'height_weight': math.pow(get_height(), 1.5),
 					'height_cumulative': get_cumulative_height(),
 					'height_relative': get_relative_height(),
-					'holes': get_holes(), # this getter is done
+					'holes': get_holes(), # this getter not done TODO
 					'roughness': get_roughness()
 				}
 
@@ -570,7 +570,7 @@ def rotate_clockwise(shape):
 		for x in range(len(shape[0]) - 1, -1, -1) ]
 
 def check_collision(board, shape, offset):
-	# TO DO print(get_holes())
+	# TODO print(get_holes())
 	off_x, off_y = offset
 	for cy, row in enumerate(shape):
 		for cx, cell in enumerate(row):
@@ -581,8 +581,8 @@ def check_collision(board, shape, offset):
 				return True
 	return False	
 
-# TO DO
-""" def get_holes(self):
+# TODO
+def get_holes():
 	remove_shape()
 	peaks = [20, 20, 20, 20, 20, 20, 20, 20]
 	for row in range(0, len(grid)):
@@ -597,7 +597,9 @@ def check_collision(board, shape, offset):
 				holes = holes + 1
 
 	apply_shape()
-	return holes """
+	print("This is from the get_holes function: ")
+	print(holes)
+	return holes
 
 def remove_row(board, row):
 	del board[row]
@@ -690,7 +692,6 @@ class TetrisApp(object):
 	
 	def drop(self):
 		if (not self.gameover and not self.paused):
-			#print(get_holes())
 			self.stone_y += 1
 			if check_collision(self.board,
 							   self.stone,
