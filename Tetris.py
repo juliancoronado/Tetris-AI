@@ -66,7 +66,7 @@ grid = [
 
 # The configuration
 config = {
-	'cell_size': 25,
+	'cell_size': 20,
 	'cols': 10,
 	'rows':	20,
 	'delay': 750,
@@ -166,9 +166,29 @@ def initialize_population():
 	archive['population_size'] = population
 	# next_shape()
 	# apply_shape()
-	save_state = get_state()
-	round_state = get_state()
 	create_initial_population()
+
+def get_state():
+	state = {
+		# grid: clone(grid),
+		# current_shape: clone(current_shape),
+		# upcoming_shape: clone(upcoming_shape),
+		# bag: clone(bag),
+		# bag_index: clone(bag_index),
+		# random_seed: clone(random_seed),
+		# score: clone(score)
+	}
+
+	return state
+
+# SELECTION
+def evaluate_next_genome(current):
+	current_genome = current + 1
+	if current_genome == len(genomes):
+		evolve(generation, genomes)
+	# load_state(round_state)
+	moves_taken = 0
+	make_next_move()
 
 def create_initial_population():
 	genomes = []
@@ -183,27 +203,18 @@ def create_initial_population():
 			'roughness': uniform(0, 1) - 0.5
 		}
 		genomes.append(genome)
-	evaluate_next_genome()
-
-# SELECTION
-def evaluate_next_genome():
-	current_genome = current_genome + 1
-	if current_genome == len(genomes):
-		evolve()
-	# load_state(round_state)
-	moves_taken = 0
-	make_next_move()
+	evaluate_next_genome(current_genome)
 
 # CROSSOVER
 # new generation
-def evolve():
+def evolve(gen, g_nomes):
 	current_genome = 0
-	generation = generation + 1
+	generation = gen + 1
 	# reset_game()
-	round_state = get_state()
-	genomes = sorted(genomes, key = lambda k: k['fitness'])
-	archive['elites'].append(clone(genomes[0]))
-	print("Elite's fitness:", genomes[0].fitness)
+	# round_state = get_state()
+	genomes = sorted(g_nomes, key = lambda k: k['fitness'])
+	# archive['elites'].append(clone(genomes[0]))
+	# print("Elite's fitness:", genomes[0].fitness)
 
 	while len(genomes) > (population / 2):
 		genomes.pop()
@@ -220,7 +231,7 @@ def evolve():
 	genomes = []
 	genomes = genomes + children
 	archive['genomes'] = clone(genomes)
-	acrhive['current_generation'] = clone(generation)
+	acrhive['current_generation'] = clone(gen)
 
 	storing(json.dumps(archive, separators=(',', ':')))
 
@@ -622,8 +633,8 @@ class TetrisApp(object):
 	def __init__(self):
 		pygame.init()
 		pygame.key.set_repeat(250,25)
-		self.width = config['cell_size']*config['cols']
-		self.height = config['cell_size']*config['rows']
+		self.width = 400
+		self.height = 400
 		
 		self.screen = pygame.display.set_mode((self.width, self.height))
 		# we do not need mouse move events, so they are blocked
@@ -689,6 +700,9 @@ class TetrisApp(object):
 		self.center_msg("Exiting...")
 		pygame.display.update()
 		sys.exit()
+
+	def begin_ai(self):
+		initialize_population()
 	
 	def drop(self):
 		if (not self.gameover and not self.paused):
@@ -734,14 +748,15 @@ class TetrisApp(object):
 			'DOWN':		self.drop,
 			'UP':		self.rotate_stone,
 			'p':		self.toggle_pause,
+			'a': 		self.begin_ai,
 			'SPACE':	self.start_game
 		}
-		
+
 		self.gameover = False
 		self.paused = False
 		
 		pygame.time.set_timer(pygame.USEREVENT+1, config['delay'])
-		dont_burn_my_cpu = pygame.time.Clock()
+		clock = pygame.time.Clock()
 		while 1:
 			self.screen.fill((0,0,0))
 			if self.gameover:
@@ -768,7 +783,7 @@ Press space to continue""")
 						+key):
 							key_actions[key]()
 					
-			dont_burn_my_cpu.tick(config['maxfps'])
+			clock.tick(config['maxfps'])
 
 if __name__ == '__main__':
 	App = TetrisApp()
