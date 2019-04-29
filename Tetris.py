@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-# Location of current file: C:\Users\Julian Coronado\Documents\GitHub\481project>
-
 # Simple tetris implementation
 # 
 # Control keys:
@@ -11,6 +9,7 @@
 # Up - Rotate block clockwise
 # Esc - Quit game
 # P - Pause game
+# A - activate AI
 #
 # Have fun!
 
@@ -106,18 +105,6 @@ tetris_shapes = [
 	 [7, 7]]
 ]
 
-'''
-tetris_shapes = {
-	'I': [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
-	'J': [[2, 0, 0], [2, 2, 2], [0, 0, 0]],
-	'L': [[0, 0, 3], [3, 3, 3], [0, 0, 0]],
-	'O': [[4, 4], [4, 4]],
-	'S': [[0, 5, 5], [5, 5, 0], [0, 0, 0]],
-	'T': [[0, 6, 0], [6, 6, 6], [0, 0, 0]],
-	'Z': [[7, 7, 0], [0, 7, 7], [0, 0, 0]]
-}
-'''
-
 random_seed = 1
 current_shape = {
 	'x': 0,
@@ -150,7 +137,7 @@ def storing(stringed_archive):
 # number of genomes
 population = 50
 genomes = []
-current_genome = -1
+current_genome = 0
 generation = 0
 archive = {
 	'population_size': 0,
@@ -164,8 +151,10 @@ mutation_step = 0.2  # interval to mutation rate
 
 def initialize_population():
 	archive['population_size'] = population
-	# next_shape()
-	# apply_shape()
+	next_shape()
+	apply_shape()
+	# save_state = get_state()
+	# round_state = get_state()
 	create_initial_population()
 
 def get_state():
@@ -178,14 +167,14 @@ def get_state():
 		# random_seed: clone(random_seed),
 		# score: clone(score)
 	}
-
 	return state
 
 # SELECTION
-def evaluate_next_genome(current):
-	current_genome = current + 1
+def evaluate_next_genome():
+	global current_genome
+	current_genome = current_genome + 1
 	if current_genome == len(genomes):
-		evolve(generation, genomes)
+		evolve()
 	# load_state(round_state)
 	moves_taken = 0
 	make_next_move()
@@ -203,18 +192,21 @@ def create_initial_population():
 			'roughness': uniform(0, 1) - 0.5
 		}
 		genomes.append(genome)
-	evaluate_next_genome(current_genome)
+	evaluate_next_genome()
 
 # CROSSOVER
 # new generation
-def evolve(gen, g_nomes):
+def evolve():
+	global generation
+	global current_genome
 	current_genome = 0
-	generation = gen + 1
+	generation = generation + 1
 	# reset_game()
 	# round_state = get_state()
+	print(g_nomes[0])
 	genomes = sorted(g_nomes, key = lambda k: k['fitness'])
-	# archive['elites'].append(clone(genomes[0]))
-	# print("Elite's fitness:", genomes[0].fitness)
+	archive['elites'].append(clone(genomes[0]))
+	print("Elite's fitness:", genomes[0].fitness)
 
 	while len(genomes) > (population / 2):
 		genomes.pop()
@@ -224,7 +216,7 @@ def evolve(gen, g_nomes):
 		total_fitness = total_fitness + genomes[i].fitness
 
 	children = []
-	children.append(clone(genomes[0]))
+	children.append(genomes[0])
 	while len(children) < population:
 		children.append(make_child(get_random_genome(), get_random_genome()))
 	
@@ -278,11 +270,13 @@ def random_choice(one, two):
 		return clone(two)
 
 def make_next_move():
+	global moves_taken
 	moves_taken = moves_taken + 1
 	if moves_taken > move_limit:
 		genomes[current_genome]['fitness'] = clone(score)
 		evaluate_next_genome()
 	else:
+		global next_draw
 		old_draw = clone(next_draw)
 		next_draw = False
 		possible_moves = get_all_possible_moves()
@@ -324,13 +318,13 @@ def get_all_possible_moves():
 		oldX = []
 		for t in range(-5, 6):
 			iterations = iterations + 1
-			load_state(last_state)
+			# load_state(last_state)
 
 			for j in range(0, rotations):
 				rotate_shape()
 			
 			if t < 0:
-				for left in range(0, math.fabs(t)):
+				for left in range(0, abs(t)):
 					move_left()
 			elif t > 0:
 				for right in range(0, t):
@@ -495,6 +489,7 @@ def remove_shape():
 				grid[current_shape['y'] + row][current_shape['y'] + col] = 0
 
 def next_shape():
+	global bag_index
 	bag_index = bag_index + 1
 	if len(bag) == 0 or bag_index == len(bag):
 		generate_bag()
@@ -581,7 +576,6 @@ def rotate_clockwise(shape):
 		for x in range(len(shape[0]) - 1, -1, -1) ]
 
 def check_collision(board, shape, offset):
-	# TODO print(get_holes())
 	off_x, off_y = offset
 	for cy, row in enumerate(shape):
 		for cx, cell in enumerate(row):
