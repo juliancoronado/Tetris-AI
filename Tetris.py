@@ -612,16 +612,9 @@ class TetrisApp(object):
 		for y, row in enumerate(matrix):
 			for x, val in enumerate(row):
 				if val:
-					pygame.draw.rect(
-						self.screen,
-						colors[val],
-						pygame.Rect(
-							(off_x+x) *
-							  config['cell_size'],
-							(off_y+y) *
-							  config['cell_size'], 
-							config['cell_size'],
-							config['cell_size']),0)
+					rect = pygame.Rect(	(off_x+x) * config['cell_size'], (off_y+y) * config['cell_size'],
+						config['cell_size'], config['cell_size'])
+					pygame.draw.rect(self.screen, colors[val], rect, 0)
 	
 	def move(self, delta_x):
 		if not self.gameover and not self.paused:
@@ -630,9 +623,7 @@ class TetrisApp(object):
 				new_x = 0
 			if new_x > config['cols'] - len(self.stone[0]):
 				new_x = config['cols'] - len(self.stone[0])
-			if not check_collision(self.board,
-								   self.stone,
-								   (new_x, self.stone_y)):
+			if not check_collision(self.board, self.stone, (new_x, self.stone_y)):
 				self.stone_x = new_x
 	def quit(self):
 		self.center_msg("Exiting...")
@@ -693,21 +684,18 @@ class TetrisApp(object):
 		self.gameover = False
 		self.paused = False
 		
-		pygame.time.set_timer(pygame.USEREVENT+1, config['delay'])
+		pygame.time.set_timer(pygame.USEREVENT + 1, config['delay'])
 		clock = pygame.time.Clock()
 		while 1:
 			self.screen.fill((0,0,0))
 			if self.gameover:
-				self.center_msg("""Game Over!
-Press space to continue""")
+				self.center_msg("""Game Over! Press space to continue""")
 			else:
 				if self.paused:
 					self.center_msg("Paused")
 				else:
 					self.draw_matrix(self.board, (0,0))
-					self.draw_matrix(self.stone,
-									 (self.stone_x,
-									  self.stone_y))
+					self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
 			pygame.display.update()
 			
 			for event in pygame.event.get():
