@@ -26,7 +26,7 @@ grid = [
 	[0,0,0,0,0,0,0,0,0,0],
 ]
 
-# The configuration
+# game configuration
 config = {
 	'cell_size': 20,
 	'cols': 10,
@@ -451,7 +451,7 @@ def generate_bag():
 	bag = []
 	contents = ""
 	for i in range(0, 7):
-		tetronimo = random_key(tetris_shapes)
+		tetronimo = tetris_shapes[rand(0, 7)]
 		while(contents.index(tetronimo) != -1):
 			tetronimo = random_key(tetronimo)
 		bag[i] = tetronimo
@@ -504,15 +504,6 @@ def rotate(matrix, times):
 def transpose(array):
 	transposed_array = [[array[j][i] for j in range(len(array))] for i in range(len(array[0]))]
 	return transposed_array
-
-# Stopping at output - need to figure out if we are changing our presentation of the project
-
-# README - IMPORTANT INFORMATION:
-# From this point on is the PyGame implementation to get Tetris to work WITHOUT
-# the algorithm implemented.
-# The next step for us to do from this point is to somehow integrate the algo
-# with the PyGame implementation. However, we do NOT need to use the bottom
-# PyGame implementation and can come up with another using the one above.
 
 def rotate_clockwise(shape):
 	return [[shape[y][x]
@@ -580,6 +571,8 @@ class TetrisApp(object):
 		self.init_game()
 	
 	def new_stone(self):
+		global moves_taken
+		moves_taken = moves_taken + 1
 		self.stone = tetris_shapes[rand(len(tetris_shapes))]
 		self.stone_x = int(config['cols'] / 2 - len(self.stone[0])/2)
 		self.stone_y = 0
@@ -592,6 +585,18 @@ class TetrisApp(object):
 	def init_game(self):
 		self.board = new_board()
 		self.new_stone()
+
+	def right_msg(self, msg):
+		for i, line in enumerate(msg.splitlines()):
+			msg_image =  pygame.font.Font(
+				pygame.font.get_default_font(), 12).render(
+					line, False, (255,255,255), (0,0,0))
+		
+			msgim_center_x, msgim_center_y = msg_image.get_size()
+			msgim_center_x = 300
+			msgim_center_y = 300
+		
+			self.screen.blit(msg_image, (300, 300))
 	
 	def center_msg(self, msg):
 		for i, line in enumerate(msg.splitlines()):
@@ -670,6 +675,7 @@ class TetrisApp(object):
 			self.gameover = False
 	
 	def run(self):
+		global moves_taken
 		key_actions = {
 			'ESCAPE':	self.quit,
 			'LEFT':		lambda:self.move(-1),
@@ -696,6 +702,7 @@ class TetrisApp(object):
 				else:
 					self.draw_matrix(self.board, (0,0))
 					self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
+					self.right_msg("Moves Taken: " + str(moves_taken))
 			pygame.display.update()
 			
 			for event in pygame.event.get():
