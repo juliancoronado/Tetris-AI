@@ -1,7 +1,7 @@
 # took out top comments bc they were distracting, sorry
 
 from random import randrange as rand, uniform
-import pygame, sys, math, json
+import pygame, sys, math, json, random
 
 grid = [
 	[0,0,0,0,0,0,0,0,0,0],
@@ -101,6 +101,7 @@ population = 50
 genomes = []
 current_genome = 0
 generation = 0
+
 archive = {
 	'population_size': 0,
 	'current_generation': 0,
@@ -215,8 +216,8 @@ def random_choice(one, two):
 		return clone(two)
 
 def make_next_move():
-	global moves_taken
-	moves_taken = moves_taken + 1
+	# global moves_taken
+	# moves_taken = moves_taken + 1
 	if moves_taken > move_limit:
 		genomes[current_genome]['fitness'] = clone(score)
 		evaluate_next_genome()
@@ -251,7 +252,7 @@ def make_next_move():
 
 		output()
 
-		update_score()
+		# update_score()
 	
 def get_all_possible_moves():
 	possible_moves = []
@@ -261,7 +262,6 @@ def get_all_possible_moves():
 		oldX = []
 		for t in range(-5, 6):
 			iterations = iterations + 1
-			# load_state(last_state)
 
 			for j in range(0, rotations):
 				rotate_shape()
@@ -273,6 +273,7 @@ def get_all_possible_moves():
 				for right in range(0, t):
 					move_right()
 			
+			# TODO what is OldX doing here????
 			if not contains(oldX, current_shape['x']):
 				move_down_results = move_down()
 				
@@ -281,9 +282,9 @@ def get_all_possible_moves():
 				
 				algorithm = {
 					'rows_cleared': move_down_results['rows_cleared'],
-					'height_weight': math.pow(get_height(), 1.5),
-					'height_cumulative': get_cumulative_height(),
-					'height_relative': get_relative_height(),
+					'height_weight': 0.5, #math.pow(get_height(), 1.5),
+					'height_cumulative': 0.5, # get_cumulative_height(),
+					'height_relative': 0.5, #get_relative_height(),
 					'holes': get_holes(), # this getter not done TODO
 					'roughness': get_roughness()
 				}
@@ -329,12 +330,12 @@ def clone(stringed_object):
 	return json.dumps(archive, separators=(',', ':'))
 
 def contains(oldX, currentX):
-	idx = len(oldX)
-	while idx >= 0:
-		if oldX[idx] == currentX:
-			return True
-		idx = idx - 1
-	return false
+	# idx = len(oldX)
+	# while idx >= 0:
+	# 	if oldX[idx] == currentX:
+	# 		return True
+	# 	idx = idx - 1
+	return False
 
 def update():
 	if current_genome != -1:
@@ -348,9 +349,10 @@ def update():
 	else:
 		move_down()
 	output()
-	update_score()
+	# update_score()
 
 def move_down():
+	global score
 	result = {
 		'lose': False,
 		'moved': True,
@@ -370,9 +372,8 @@ def move_down():
 			#reset_game()
 		result['moved'] = False
 	apply_shape()
-	score = score + 1
-	update_score()
-	output()
+	# score = score + 1
+	# output()
 	return result
 
 def move_left():
@@ -423,16 +424,16 @@ def apply_shape():
 	for row in range(0, len(current_shape['shape'])):
 		for col in range(0, len(current_shape['shape'][row])):
 			if current_shape['shape'][row][col] != 0:
-				grid[current_shape['y'] + row][current_shape['y'] + col] = current_shape['shape'][row][col]
+				grid[current_shape['y'] + row][current_shape['x'] + col] = current_shape['shape'][row][col]
 
 def remove_shape():
 	for row in range(0, len(current_shape['shape'])):
 		for col in range(0, len(current_shape['shape'][row])):
 			if current_shape['shape'][row][col] != 0:
-				grid[current_shape['y'] + row][current_shape['y'] + col] = 0
+				grid[current_shape['y'] + row][current_shape['x'] + col] = 0
 
 def next_shape():
-	global bag_index
+	global bag_index, current_shape, grid
 	bag_index = bag_index + 1
 	if len(bag) == 0 or bag_index == len(bag):
 		generate_bag()
@@ -441,20 +442,21 @@ def next_shape():
 		upcoming_shape = random_property(tetris_shapes)
 		random_seed = previous_seed
 	else:
-		upcoming_shape = tetris_shapes[bag[bag_index + 1]]
-	current_shape['shape'] = tetris_shapes[bag[bag_index]]
-	current_shape['x'] = math.floor(len(grid[0]) / 2) - math.ceil(len(current_shape[0]) / 2)
+		upcoming_shape = bag[bag_index + 1]
+
+	current_shape['shape'] = bag[bag_index]
+	current_shape['x'] = math.floor(len(grid[0]) / 2) - math.ceil(len(current_shape) / 2)
 	current_shape['y'] = 0
 
 def generate_bag():
-	bag = []
+	global bag
 	contents = ""
 	for i in range(0, 7):
-		tetronimo = tetris_shapes[rand(0, 7)]
-		while(contents.index(tetronimo) != -1):
-			tetronimo = random_key(tetronimo)
-		bag[i] = tetronimo
-		contents = contents + tetronimo
+		tetronimo = random.choice(tetris_shapes)
+		# while(contents.index(tetronimo) != -1):
+		# 	tetronimo = random.choice(tetris_shapes)
+		bag.append(tetronimo)
+		# contents = contents + tetronimo[i]
 	bag_index = 0
 
 def reset_game():
@@ -486,8 +488,8 @@ def reset_game():
 	next_shape()
 
 def collides(grid, tetronimos):
-	for row in range(0, len(tetronimos['shape'])):
-		for col in range(0, len(tetronimos['shape'][row])):
+	for row in range(0, len(tetronimos['shape']) - 1):
+		for col in range(0, len(tetronimos['shape'][row]) - 1):
 			if tetronimos['shape'][row][col] != 0:
 				if grid[tetronimos['y'] + row] == None or grid[tetronimos['y'] + row][tetronimos['x'] + col] == None or grid[tetronimos['y'] + row][tetronimos['x'] + col] != 0:
 					return True
@@ -522,16 +524,16 @@ def check_collision(board, shape, offset):
 
 def get_holes():
 	remove_shape()
-	peaks = [20, 20, 20, 20, 20, 20, 20, 20]
+	peaks = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
 	for row in range(0, len(grid)):
 		for col in range(0, len(grid[row])):
 			if (grid[row][col] != 0 and peaks[col] == 20):
 				peaks[col] = row
 
 	holes = 0
-	for x in range(0, len(peaks)):
-		for y in (0, len(grid)):
-			if (grid[y][x] == 0):
+	for x in range(0, len(grid) - 1):
+		for y in range(0, len(peaks) - 1):
+			if (grid[x][y] == 0):
 				holes = holes + 1
 
 	apply_shape()
@@ -586,8 +588,7 @@ class TetrisApp(object):
 
 	def right_msg(self, msg, off_x, off_y):
 		for i, line in enumerate(msg.splitlines()):
-			msg_image =  pygame.font.Font(
-				pygame.font.get_default_font(), 12).render(
+			msg_image =  pygame.font.SysFont('Arial', 15).render(
 					line, False, (255,255,255), (105, 105, 105))
 		
 			msgim_center_x, msgim_center_y = msg_image.get_size()
@@ -598,8 +599,7 @@ class TetrisApp(object):
 	
 	def center_msg(self, msg):
 		for i, line in enumerate(msg.splitlines()):
-			msg_image =  pygame.font.Font(
-				pygame.font.get_default_font(), 20).render(
+			msg_image =  pygame.font.SysFont('Arial', 20).render(
 					line, False, (0, 0, 0), (255, 255, 0))
 		
 			msgim_center_x, msgim_center_y = msg_image.get_size()
