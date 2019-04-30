@@ -1,41 +1,4 @@
-#!/usr/bin/env python3
-#-*- coding: utf-8 -*-
-
-# Simple tetris implementation
-# 
-# Control keys:
-# Down - Drop block faster
-# Left/Right - Move block
-# Up - Rotate block clockwise
-# Esc - Quit game
-# P - Pause game
-# A - activate AI
-#
-# Have fun!
-
-# Copyright (c) 2010 "Kevin Chabowski"<kevin@kch42.de>
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-# This code has been modified by Team 7 for Wenlin Han's CPSC481 class and
-# is used primarily for educational purposes. The team is composed of:
-# Julian Coronado, Theresa Tanubrata, Alexander Truong, Ying Lin Wen
+# took out top comments bc they were distracting, sorry
 
 from random import randrange as rand, uniform
 import pygame, sys, math, json
@@ -153,21 +116,7 @@ def initialize_population():
 	archive['population_size'] = population
 	next_shape()
 	apply_shape()
-	# save_state = get_state()
-	# round_state = get_state()
 	create_initial_population()
-
-def get_state():
-	state = {
-		# grid: clone(grid),
-		# current_shape: clone(current_shape),
-		# upcoming_shape: clone(upcoming_shape),
-		# bag: clone(bag),
-		# bag_index: clone(bag_index),
-		# random_seed: clone(random_seed),
-		# score: clone(score)
-	}
-	return state
 
 # SELECTION
 def evaluate_next_genome():
@@ -201,9 +150,6 @@ def evolve():
 	global current_genome
 	current_genome = 0
 	generation = generation + 1
-	# reset_game()
-	# round_state = get_state()
-	print(g_nomes[0])
 	genomes = sorted(g_nomes, key = lambda k: k['fitness'])
 	archive['elites'].append(clone(genomes[0]))
 	print("Elite's fitness:", genomes[0].fitness)
@@ -280,7 +226,6 @@ def make_next_move():
 		old_draw = clone(next_draw)
 		next_draw = False
 		possible_moves = get_all_possible_moves()
-		last_state = get_state()
 		next_shape()
 		
 		for i in range(0, possible_moves):
@@ -310,7 +255,6 @@ def make_next_move():
 		update_score()
 	
 def get_all_possible_moves():
-	last_state = get_state()
 	possible_moves = []
 	possible_move_ratings = []
 	iterations = 0
