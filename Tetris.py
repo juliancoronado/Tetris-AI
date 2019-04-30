@@ -520,7 +520,6 @@ def check_collision(board, shape, offset):
 				return True
 	return False	
 
-# TODO
 def get_holes():
 	remove_shape()
 	peaks = [20, 20, 20, 20, 20, 20, 20, 20]
@@ -536,11 +535,11 @@ def get_holes():
 				holes = holes + 1
 
 	apply_shape()
-	print("This is from the get_holes function: ")
-	print(holes)
 	return holes
 
 def remove_row(board, row):
+	global score
+	score = score + 100
 	del board[row]
 	return [[0 for i in range(config['cols'])]] + board
 	
@@ -629,6 +628,7 @@ class TetrisApp(object):
 				new_x = config['cols'] - len(self.stone[0])
 			if not check_collision(self.board, self.stone, (new_x, self.stone_y)):
 				self.stone_x = new_x
+
 	def quit(self):
 		self.center_msg("Exiting...")
 		pygame.display.update()
@@ -711,10 +711,10 @@ class TetrisApp(object):
 					self.draw_matrix(self.board, (0,0))
 					self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
 					self.right_msg("Genome Values: ", 0, -120)
-					self.right_msg("Fitness: ", 15, -105)
-					self.right_msg("Value1: ", 15, -90)
-					self.right_msg("Value2: ", 15, -75)
-					self.right_msg("Value3: ", 15, -60)
+					self.right_msg("Generation: ", 15, -105)
+					self.right_msg("Genome #: ", 15, -90)
+					self.right_msg("Fitness: ", 15, -75)
+					self.right_msg("Example Val: ", 15, -60)
 					self.right_msg("[A] Toggle AI", 0, -15)
 					self.right_msg("Moves Taken: " + str(moves_taken), 0, 0)
 					if (self.ai):
