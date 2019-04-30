@@ -712,7 +712,9 @@ class TetrisApp(object):
 					self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
 					self.right_msg("Genome Values: ", 0, -120)
 					self.right_msg("Fitness: ", 15, -105)
-					self.right_msg("Example: ", 15, -90)
+					self.right_msg("Value1: ", 15, -90)
+					self.right_msg("Value2: ", 15, -75)
+					self.right_msg("Value3: ", 15, -60)
 					self.right_msg("[A] Toggle AI", 0, -15)
 					self.right_msg("Moves Taken: " + str(moves_taken), 0, 0)
 					if (self.ai):
