@@ -600,7 +600,7 @@ class TetrisApp(object):
 		for i, line in enumerate(msg.splitlines()):
 			msg_image =  pygame.font.Font(
 				pygame.font.get_default_font(), 12).render(
-					line, False, (255,255,255), (0,0,0))
+					line, False, (0, 0, 0), (255, 255, 0))
 		
 			msgim_center_x, msgim_center_y = msg_image.get_size()
 			msgim_center_x //= 2
@@ -682,6 +682,8 @@ class TetrisApp(object):
 		global moves_taken
 		key_actions = {
 			'ESCAPE':	self.quit,
+			# im not entirely sure what "lambda"
+			# does here but if i remove it the game breaks
 			'LEFT':		lambda:self.move(-1),
 			'RIGHT':	lambda:self.move(+1),
 			'DOWN':		self.drop,
