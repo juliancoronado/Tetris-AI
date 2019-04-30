@@ -599,7 +599,7 @@ class TetrisApp(object):
 	def center_msg(self, msg):
 		for i, line in enumerate(msg.splitlines()):
 			msg_image =  pygame.font.Font(
-				pygame.font.get_default_font(), 12).render(
+				pygame.font.get_default_font(), 20).render(
 					line, False, (0, 0, 0), (255, 255, 0))
 		
 			msgim_center_x, msgim_center_y = msg_image.get_size()
