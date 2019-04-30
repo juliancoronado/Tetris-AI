@@ -595,7 +595,7 @@ class TetrisApp(object):
 			msgim_center_x = 300
 			msgim_center_y = 300
 		
-			self.screen.blit(msg_image, (300, 300 + off_y))
+			self.screen.blit(msg_image, (220, 300 + off_y))
 	
 	def center_msg(self, msg):
 		for i, line in enumerate(msg.splitlines()):
@@ -707,11 +707,13 @@ class TetrisApp(object):
 				else:
 					self.draw_matrix(self.board, (0,0))
 					self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
+					self.right_msg("[A] Toggle AI", -15)
 					self.right_msg("Moves Taken: " + str(moves_taken), 0)
 					if (self.ai):
 						self.right_msg("AI: On", 15)
 					else:
 						self.right_msg("AI: Off", 15)
+					self.right_msg("Score: " + str(score), 30)
 			pygame.display.update()
 			
 			for event in pygame.event.get():
