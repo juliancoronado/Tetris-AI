@@ -680,6 +680,7 @@ class TetrisApp(object):
 	
 	def run(self):
 		global moves_taken
+		global score
 		key_actions = {
 			'ESCAPE':	self.quit,
 			# im not entirely sure what "lambda"
