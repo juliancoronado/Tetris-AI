@@ -585,17 +585,17 @@ class TetrisApp(object):
 		self.board = new_board()
 		self.new_stone()
 
-	def right_msg(self, msg, off_y):
+	def right_msg(self, msg, off_x, off_y):
 		for i, line in enumerate(msg.splitlines()):
 			msg_image =  pygame.font.Font(
 				pygame.font.get_default_font(), 12).render(
-					line, False, (255,255,255), (0,0,0))
+					line, False, (255,255,255), (105, 105, 105))
 		
 			msgim_center_x, msgim_center_y = msg_image.get_size()
 			msgim_center_x = 300
 			msgim_center_y = 300
 		
-			self.screen.blit(msg_image, (220, 300 + off_y))
+			self.screen.blit(msg_image, (220 + off_x, 300 + off_y))
 	
 	def center_msg(self, msg):
 		for i, line in enumerate(msg.splitlines()):
@@ -698,7 +698,10 @@ class TetrisApp(object):
 		pygame.time.set_timer(pygame.USEREVENT + 1, config['delay'])
 		clock = pygame.time.Clock()
 		while 1:
-			self.screen.fill((0,0,0))
+			rect1 = pygame.Rect(0, 0, 200, 400)
+			rect2 = pygame.Rect(200, 0, 200, 400)
+			self.screen.fill((0 , 0, 0), rect1)
+			self.screen.fill((105, 105, 105), rect2)
 			if self.gameover:
 				self.center_msg("""Game Over! Press space to continue""")
 			else:
@@ -707,13 +710,16 @@ class TetrisApp(object):
 				else:
 					self.draw_matrix(self.board, (0,0))
 					self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
-					self.right_msg("[A] Toggle AI", -15)
-					self.right_msg("Moves Taken: " + str(moves_taken), 0)
+					self.right_msg("Genome Values: ", 0, -120)
+					self.right_msg("Fitness: ", 15, -105)
+					self.right_msg("Example: ", 15, -90)
+					self.right_msg("[A] Toggle AI", 0, -15)
+					self.right_msg("Moves Taken: " + str(moves_taken), 0, 0)
 					if (self.ai):
-						self.right_msg("AI: On", 15)
+						self.right_msg("AI: On", 0, 15)
 					else:
-						self.right_msg("AI: Off", 15)
-					self.right_msg("Score: " + str(score), 30)
+						self.right_msg("AI: Off", 0, 15)
+					self.right_msg("Score: " + str(score), 0, 30)
 			pygame.display.update()
 			
 			for event in pygame.event.get():
