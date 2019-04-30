@@ -77,7 +77,6 @@ current_shape = {
 
 bag = []
 bag_index = 0
-score = 500
 
 # GAME VALUES
 score = 0
@@ -636,7 +635,12 @@ class TetrisApp(object):
 		sys.exit()
 
 	def begin_ai(self):
-		initialize_population()
+		self.ai = not self.ai
+		try:
+			#TODO this is where things begin to break
+			initialize_population()
+		except:
+			print("AI Toggle is broken.")
 	
 	def drop(self):
 		if (not self.gameover and not self.paused):
@@ -676,7 +680,6 @@ class TetrisApp(object):
 	
 	def run(self):
 		global moves_taken
-		global score
 		key_actions = {
 			'ESCAPE':	self.quit,
 			'LEFT':		lambda:self.move(-1),
@@ -688,6 +691,7 @@ class TetrisApp(object):
 			'SPACE':	self.start_game
 		}
 
+		self.ai = False
 		self.gameover = False
 		self.paused = False
 		
@@ -704,7 +708,10 @@ class TetrisApp(object):
 					self.draw_matrix(self.board, (0,0))
 					self.draw_matrix(self.stone, (self.stone_x, self.stone_y))
 					self.right_msg("Moves Taken: " + str(moves_taken), 0)
-					self.right_msg("Score: " + str(score), 15)
+					if (self.ai):
+						self.right_msg("AI: On", 15)
+					else:
+						self.right_msg("AI: Off", 15)
 			pygame.display.update()
 			
 			for event in pygame.event.get():
