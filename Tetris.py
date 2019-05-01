@@ -439,7 +439,7 @@ def next_shape():
 		generate_bag()
 	if bag_index == (len(bag) - 1):
 		previous_seed = random_seed
-		upcoming_shape = random_property(tetris_shapes)
+		upcoming_shape = random.choice(tetris_shapes)
 		random_seed = previous_seed
 	else:
 		upcoming_shape = bag[bag_index + 1]
