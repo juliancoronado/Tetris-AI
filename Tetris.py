@@ -506,22 +506,6 @@ def transpose(array):
 	transposed_array = [[array[j][i] for j in range(len(array))] for i in range(len(array[0]))]
 	return transposed_array
 
-def rotate_clockwise(shape):
-	return [[shape[y][x]
-			for y in range(len(shape))]
-		for x in range(len(shape[0]) - 1, -1, -1) ]
-
-def check_collision(board, shape, offset):
-	off_x, off_y = offset
-	for cy, row in enumerate(shape):
-		for cx, cell in enumerate(row):
-			try:
-				if cell and board[ cy + off_y ][ cx + off_x ]:
-					return True
-			except IndexError:
-				return True
-	return False	
-
 def get_holes():
 	remove_shape()
 	peaks = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
@@ -539,24 +523,8 @@ def get_holes():
 	apply_shape()
 	return holes
 
-def remove_row(board, row):
-	global score
-	score = score + 100
-	del board[row]
-	return [[0 for i in range(config['cols'])]] + board
-	
-def join_matrixes(mat1, mat2, mat2_off):
-	off_x, off_y = mat2_off
-	for cy, row in enumerate(mat2):
-		for cx, val in enumerate(row):
-			mat1[cy+off_y-1][cx+off_x] += val
-	return mat1
-
-def new_board():
-	board = [[0 for x in range(config['cols'])]
-			for y in range(config['rows']) ]
-	board += [[1 for x in range(config['cols'])]]
-	return board
+moves_taken = 0
+score = 0
 
 class TetrisApp(object):
 	def __init__(self):
@@ -577,14 +545,30 @@ class TetrisApp(object):
 		self.stone_x = int(config['cols'] / 2 - len(self.stone[0])/2)
 		self.stone_y = 0
 		
-		if check_collision(self.board,
+		if self.check_collision(self.board,
 						   self.stone,
 						   (self.stone_x, self.stone_y)):
 			self.gameover = True
 	
 	def init_game(self):
-		self.board = new_board()
+		self.board = self.new_board()
 		self.new_stone()
+
+	def check_collision(self, board, shape, offset):
+		off_x, off_y = offset
+		for cy, row in enumerate(shape):
+			for cx, cell in enumerate(row):
+				try:
+					if cell and board[ cy + off_y ][ cx + off_x ]:
+						return True
+				except IndexError:
+					return True
+		return False
+	
+	def new_board(self):
+		board = [[0 for x in range(config['cols'])] for y in range(config['rows']) ]
+		board += [[1 for x in range(config['cols'])]]
+		return board
 
 	def right_msg(self, msg, off_x, off_y):
 		for i, line in enumerate(msg.splitlines()):
@@ -596,6 +580,13 @@ class TetrisApp(object):
 			msgim_center_y = 300
 		
 			self.screen.blit(msg_image, (220 + off_x, 300 + off_y))
+
+	def join_matrixes(self, mat1, mat2, mat2_off):
+		off_x, off_y = mat2_off
+		for cy, row in enumerate(mat2):
+			for cx, val in enumerate(row):
+				mat1[cy+off_y-1][cx+off_x] += val
+		return mat1
 	
 	def center_msg(self, msg):
 		for i, line in enumerate(msg.splitlines()):
@@ -626,7 +617,7 @@ class TetrisApp(object):
 				new_x = 0
 			if new_x > config['cols'] - len(self.stone[0]):
 				new_x = config['cols'] - len(self.stone[0])
-			if not check_collision(self.board, self.stone, (new_x, self.stone_y)):
+			if not self.check_collision(self.board, self.stone, (new_x, self.stone_y)):
 				self.stone_x = new_x
 
 	def quit(self):
@@ -641,14 +632,20 @@ class TetrisApp(object):
 			initialize_population()
 		except:
 			print("AI Toggle is broken.")
+
+	def remove_row(self, board, row):
+		global score
+		score = score + 100
+		del board[row]
+		return [[0 for i in range(config['cols'])]] + board
 	
 	def drop(self):
 		if (not self.gameover and not self.paused):
 			self.stone_y += 1
-			if check_collision(self.board,
+			if self.check_collision(self.board,
 							   self.stone,
 							   (self.stone_x, self.stone_y)):
-				self.board = join_matrixes(
+				self.board = self.join_matrixes(
 				  self.board,
 				  self.stone,
 				  (self.stone_x, self.stone_y))
@@ -656,7 +653,7 @@ class TetrisApp(object):
 				while True:
 					for i, row in enumerate(self.board[:-1]):
 						if 0 not in row:
-							self.board = remove_row(
+							self.board = self.remove_row(
 							  self.board, i)
 							break
 					else:
@@ -664,11 +661,14 @@ class TetrisApp(object):
 	
 	def rotate_stone(self):
 		if not self.gameover and not self.paused:
-			new_stone = rotate_clockwise(self.stone)
-			if not check_collision(self.board,
+			new_stone = self.rotate_clockwise(self.stone)
+			if not self.check_collision(self.board,
 								   new_stone,
 								   (self.stone_x, self.stone_y)):
 				self.stone = new_stone
+
+	def rotate_clockwise(self, shape):
+		return [[shape[y][x] for y in range(len(shape))] for x in range(len(shape[0]) - 1, -1, -1) ]
 	
 	def toggle_pause(self):
 		self.paused = not self.paused
