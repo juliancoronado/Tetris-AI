@@ -128,10 +128,10 @@ class AI:
 			self.genomes[self.curr_genome]['fitness'] = score
 			self.evaluate_next_genome()
 		else:
-			#TODO
 			possible_moves = self.get_all_possible_moves()
 	
 	def get_all_possible_moves(self):
+		#TODO - currently working on this function
 		print("get_all_possible_moves() function has been called.")
 		possible_moves = []
 		possible_move_ratings = []
