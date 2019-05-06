@@ -128,17 +128,17 @@ class AI:
 			self.genomes[self.curr_genome]['fitness'] = score
 			self.evaluate_next_genome()
 		else:
+			#TODO
 			possible_moves = self.get_all_possible_moves()
 	
 	def get_all_possible_moves(self):
-		#TODO - currently working on this function
 		print("get_all_possible_moves() function has been called.")
 		possible_moves = []
 		possible_move_ratings = []
 		iterations = 0
 
 		for rots in range(0, 4):
-			#oldX = []
+			oldX = []
 			for t in range(-5, 5):
 				iterations = iterations + 1
 
@@ -149,7 +149,13 @@ class AI:
 					for left in range(0, abs(t)):
 						self.move_left()
 
-				
+				if not self.contains(oldX, current_shape['x']):
+					move_down_results = self.move_down()
+
+					while move_down_results['moved']:
+						move_down_results = self.move_down()
+
+					
 	
 	def rotate_shape(self):
 		current_shape['shape'] = self.rotate(current_shape['shape'], 1)
@@ -207,8 +213,46 @@ class AI:
 		for row in range(0, len(current_shape['shape']) - 1):
 			for col in range(0, len(current_shape['shape'][row]) - 1):
 				if (current_shape['shape'][row][col] != 0):
-					if (grid[current_shape['y'] + row] == None or grid[current_shape['y'] + row][current_shape['x'] + col] == None or grid[current_shape['y'] + row][current_shape['x'] + col] != 0):
+					print("y + row: ", current_shape['y'] + row, "x: ", current_shape['x'])
+					if (grid[current_shape['y'] + row] == None):
 						return True
+					#elif (grid[current_shape['y'] + row][current_shape['x'] + col] == None):
+						#return True
+					elif (grid[current_shape['y'] + row][current_shape['x'] + col] != 0):
+						return True
+		return False
+
+	def move_down(self):
+		global score
+		result = {
+			'lose': False,
+			'moved': True,
+			'rows_cleared': 0
+		}
+		
+		self.remove_shape()
+		current_shape['y'] = current_shape['y'] + 1
+
+		if (self.collides()):
+			current_shape['y'] = current_shape['y'] - 1
+			self.apply_shape()
+			self.next_shape()
+			result['rows_cleared'] = self.clear_rows()
+			if (self.collides()):
+				result['lose'] = True
+				self.reset_game()
+			result['moved'] = False
+
+		self.apply_shape()
+		score = score + 100
+		return result
+
+	def contains(self, oldX, currentX):
+		idx = len(oldX)
+		while (idx > 0):
+			if (oldX[idx] == currentX):
+				return True
+			idx = idx - 1
 		return False
 
 ########################################################################################################################
