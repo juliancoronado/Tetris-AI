@@ -1,5 +1,5 @@
 # CPSC 481 - Artificial Intelligence
-# Project 1: TETRIS
+# Semester Project: TETRIS
 
 Group Members:
 
