@@ -213,11 +213,10 @@ class AI:
 		for row in range(0, len(current_shape['shape']) - 1):
 			for col in range(0, len(current_shape['shape'][row]) - 1):
 				if (current_shape['shape'][row][col] != 0):
-					print("y + row: ", current_shape['y'] + row, "x: ", current_shape['x'])
 					if (grid[current_shape['y'] + row] == None):
 						return True
-					#elif (grid[current_shape['y'] + row][current_shape['x'] + col] == None):
-						#return True
+					elif (grid[current_shape['y'] + row][current_shape['x'] + col] == None):
+						return True
 					elif (grid[current_shape['y'] + row][current_shape['x'] + col] != 0):
 						return True
 		return False
