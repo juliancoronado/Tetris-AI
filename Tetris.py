@@ -50,7 +50,6 @@ score = 0
 moves_taken = 0
 move_limit = 100
 move_algorithm = []
-population = 10
 genomes = []
 current_genome = -1
 generation = 0
@@ -66,7 +65,7 @@ def selection():
     global genomes
     global current_genome
     genomes = []
-    for _ in range(0, population):
+    for _ in range(0, 10):
         genome = {
             'id': random.uniform(0, 1),
             'rows_cleared': random.uniform(0, 1) - 0.5,
@@ -101,19 +100,24 @@ def crossover():
 
     current_genome = 0
     generation = generation + 1
-    reset_game()
+
     genomes = sorted(genomes, key = lambda k: k['fitness'], reverse=True)
-    while (len(genomes) > (population / 2)):
+    for _ in range(0, len(genomes) / 2):
         genomes.pop()
+
     total_fitness = 0
     for i in range(0, len(genomes)):
         total_fitness = total_fitness + genomes[i]['fitness']
+
     children = []
     children.append(genomes[0])
-    while len(children) < population:
+
+    while len(children) < 10:
         children.append(mutate(random.choice(genomes), random.choice(genomes)))
+
     genomes = []
     genomes = genomes + children
+    reset_game()
 
 # MUTATION
 def mutate(parent1, parent2):
