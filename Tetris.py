@@ -1,334 +1,198 @@
-from random import randrange as rand, uniform
-import pygame, sys, math, json, threading
+import random, pygame, sys, math, json, threading
 
-grid = [
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0],
+# Initial matrix
+matrix = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-colors = [
-(0, 0, 0),
-(255, 0, 0),
-(0, 150, 0),
-(0, 0, 255),
-(255, 120, 0),
-(255, 255, 0),
-(180, 0, 255),
-(0, 220, 220)
-]
+# To reset the matrix without cluttering code
+clear_matrix = matrix
 
+# List of tetris shapes
 tetris_shapes = {
     'I': [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]],
     'J': [[2,0,0], [2,2,2], [0,0,0]],
     'L': [[0,0,3], [3,3,3], [0,0,0]],
-    'O': [[4,4], [4,4]],
-    'S': [[0,5,5], [5,5,0], [0,0,0]],
     'T': [[0,6,0], [6,6,6], [0,0,0]],
-    'Z': [[7,7,0], [0,7,7], [0,0,0]]
+    'S': [[0,5,5], [5,5,0], [0,0,0]],
+    'Z': [[7,7,0], [0,7,7], [0,0,0]],
+    'O': [[4,4], [4,4]]
 }
 
-random_seed = 1
-current_shape = {
-    'x': 0,
-    'y': 0, 
-    'shape': []
+# Initialize the current tetris stone to be manipulated
+current_stone = {
+    'tetronimo': [None],
+    'x_position': 0,
+    'y_position': 0
 }
-upcoming_shape = None
 
-bag = []
-
-score = 500
-
-bag_index = 0
-
-# GAME VALUES
+# Base values
 score = 0
-speed = 10
-save_state = None
-round_state = None
-next_draw = True
 moves_taken = 0
-move_limit = 500
+move_limit = 100
 move_algorithm = []
-inspect_move_selection = False
-
-# LOCALSTORAGE - probably won't be needed
-# storage = None
-
-def storing(stringed_archive):
-    storage = { 'archive': stringed_archive }
-
-# GENETIC ALGO VALUES
-# number of genomes
-population = 50
+population = 10
 genomes = []
 current_genome = -1
 generation = 0
-archive = {
-    'population_size': 0,
-    'current_generation': 0,
-    'elites': [], # fittest genomes that we define
-    'genomes': [] # all genomes
-}
 
-mutation_rate = 0.05 # can be tuned to make it better
-mutation_step = 0.2  # interval to mutation rate
-
+# Begin the program
 def initialize_population():
-    global save_state
-    global round_state
-    global speed
+    next_stone()
+    set_stone()
+    selection()
 
-    archive['population_size'] = population
-    next_shape()
-    apply_shape()
-    save_state = get_state()
-    round_state = get_state()
-    create_initial_population()
-    # set_interval(loop, speed)
-    update()
-
-
-def get_state():
-    global grid
-    global current_shape
-    global upcoming_shape
-    global bag
-    global bag_index
-    global random_seed
-#    global score
-
-    state = {
-        'grid': clone(grid),
-        'current_shape': clone(current_shape),
-        'upcoming_shape': clone(upcoming_shape),
-        'bag': clone(bag),
-        'bag_index': clone(bag_index),
-        'random_seed': clone(random_seed)
-        # score: clone(score)
-    }
-    return state
-
-def load_state(state):
-    global grid
-    global current_shape
-    global upcoming_shape
-    global bag
-    #global bag_index
-    global random_seed
-
-    grid = clone(state['grid'])
-    current_shape = clone(state['current_shape'])
-    upcoming_shape = clone(state['upcoming_shape'])
-    bag = clone(state['bag'])
-    #bag_index = clone(state['bag_index'])
-    random_seed = clone(state['random_seed'])
-
-    output()
-
-def create_initial_population():
+# SELECTION
+def selection():
     global genomes
     global current_genome
     genomes = []
     for _ in range(0, population):
         genome = {
-            'id': uniform(0, 1),
-            'rows_cleared': uniform(0, 1) - 0.5,
-            'height_weight': uniform(0, 1) - 0.5,
-            'height_cumulative': uniform(0, 1) - 0.5,
-            'height_relative': uniform(0, 1) - 0.5,
-            'holes': uniform(0, 1) - 0.5,
-            'roughness': uniform(0, 1) - 0.5,
+            'id': random.uniform(0, 1),
+            'rows_cleared': random.uniform(0, 1) - 0.5,
+            'height_weight': random.uniform(0, 1) - 0.5,
+            'height_cumulative': random.uniform(0, 1) - 0.5,
+            'height_relative': random.uniform(0, 1) - 0.5,
+            'holes': random.uniform(0, 1) - 0.5,
+            'roughness': random.uniform(0, 1) - 0.5,
             'fitness': -1
         }
         genomes.append(genome)
     evaluate_next_genome()
 
-# SELECTION
 def evaluate_next_genome():
     global moves_taken
     global current_genome
     global genomes
-    global round_state
-    global load_state
 
     current_genome = current_genome + 1
     if current_genome == len(genomes):
-        evolve()
+        crossover()
     
-    load_state(round_state)
     moves_taken = 0
     make_next_move()
 
-
 # CROSSOVER
 # new generation
-def evolve():
+def crossover():
     global current_genome
     global generation
     global genomes
-    global population
-    global round_state
-    global generation
-    print('we are in evolve now')
 
     current_genome = 0
     generation = generation + 1
-
     reset_game()
-    round_state = get_state()
-
-    genomes = sorted(genomes, key = lambda k: k['fitness'], reverse=True) # CHECK THIS OUT THIS MAY NEED TO BE MODIFIED
-    # archive['elites'].append(clone(genomes[0]))
-    # print("Elite's fitness:", genomes[0].fitness)
-
+    genomes = sorted(genomes, key = lambda k: k['fitness'], reverse=True)
     while (len(genomes) > (population / 2)):
         genomes.pop()
-    
     total_fitness = 0
     for i in range(0, len(genomes)):
         total_fitness = total_fitness + genomes[i]['fitness']
-
     children = []
-    children.append(clone(genomes[0]))
-
+    children.append(genomes[0])
     while len(children) < population:
-        children.append(make_child(get_random_genome(), get_random_genome()))
-    
+        children.append(mutate(random.choice(genomes), random.choice(genomes)))
     genomes = []
     genomes = genomes + children
-    
-    # might not need these next 3 lines
-    #archive['genomes'] = clone(genomes)
-    #archive['current_generation'] = clone(gen)
-    #storing(json.dumps(archive, separators=(',', ':')))
 
 # MUTATION
-def make_child(parent1, parent2):
-    # inherit from first parent or second parent randomly
+def mutate(parent1, parent2):
     child = {
-        'id': uniform(0, 1),
-        'rows_cleared': random_choice(parent1['rows_cleared'], parent2['rows_cleared']),
-        'height_weight': random_choice(parent1['height_weight'], parent2['height_weight']),
-        'height_cumulative': random_choice(parent1['height_cumulative'], parent2['height_cumulative']),
-        'height_relative': random_choice(parent1['height_relative'], parent2['height_relative']),
-        'holes': random_choice(parent1['holes'], parent2['holes']),
-        'roughness': random_choice(parent1['roughness'], parent2['roughness']),
+        'id': random.uniform(0, 1),
+        'rows_cleared': inherit(parent1['rows_cleared'], parent2['rows_cleared']),
+        'height_weight': inherit(parent1['height_weight'], parent2['height_weight']),
+        'height_cumulative': inherit(parent1['height_cumulative'], parent2['height_cumulative']),
+        'height_relative': inherit(parent1['height_relative'], parent2['height_relative']),
+        'holes': inherit(parent1['holes'], parent2['holes']),
+        'roughness': inherit(parent1['roughness'], parent2['roughness']),
         'fitness': -1
     }
+    mutation_rate = 0.05 # can be tuned to make it better
+    mutation_step = 0.2  # interval to mutation rate
 
     # mutate each parameter
-    if uniform(0, 1) < mutation_rate:
-        child['rows_cleared'] = child['rows_cleared'] + uniform(0, 1) * mutation_step * 2 - mutation_step
-    if uniform(0, 1) < mutation_rate:
-        child['height_weight'] = child['height_weight'] + uniform(0, 1) * mutation_step * 2 - mutation_step
-    if uniform(0, 1) < mutation_rate:
-        child['height_cumulative'] = child['height_cumulative'] + uniform(0, 1) * mutation_step * 2 - mutation_step
-    if uniform(0, 1) < mutation_rate:
-        child['height_relative'] = child['height_relative'] + uniform(0, 1) * mutation_step * 2 - mutation_step
-    if uniform(0, 1) < mutation_rate:
-        child['holes'] = child['holes'] + uniform(0, 1) * mutation_step * 2 - mutation_step
-    if uniform(0, 1) < mutation_rate:
-        child['roughness'] = child['roughness'] + uniform(0, 1) * mutation_step * 2 - mutation_step
-
+    if random.uniform(0, 1) < mutation_rate:
+        child['rows_cleared'] = child['rows_cleared'] + random.uniform(0, 1) * mutation_step * 2
+    if random.uniform(0, 1) < mutation_rate:
+        child['height_weight'] = child['height_weight'] + random.uniform(0, 1) * mutation_step * 2
+    if random.uniform(0, 1) < mutation_rate:
+        child['height_cumulative'] = child['height_cumulative'] + random.uniform(0, 1) * mutation_step * 2
+    if random.uniform(0, 1) < mutation_rate:
+        child['height_relative'] = child['height_relative'] + random.uniform(0, 1) * mutation_step * 2
+    if random.uniform(0, 1) < mutation_rate:
+        child['holes'] = child['holes'] + random.uniform(0, 1) * mutation_step * 2
+    if random.uniform(0, 1) < mutation_rate:
+        child['roughness'] = child['roughness'] + random.uniform(0, 1) * mutation_step * 2
     return child
 
-def get_random_genome():
-    global genomes
-    return genomes[random_weight_num(0, len(genomes - 1))]
-
-def random_weight_num(min, max):
-    # returns a random number between 0 and max length of genomes
-    return math.floor(math.pow(uniform(0, 1), 2) * (max - min + 1) + min) 
-
-def random_choice(one, two):
-    if round(uniform(0, 1)) == 0:
-        return clone(one)
+def inherit(parent1, parent2):
+    if round(random.uniform(0, 1)) == 0:
+        return parent1
     else:
-        return clone(two)
+        return parent2
 
 def make_next_move():
     global moves_taken
     global move_limit
-    global next_draw
     global genomes
 
     moves_taken = moves_taken + 1
 
     if moves_taken > move_limit:
-        genomes[current_genome]['fitness'] = clone(score)
+        genomes[current_genome]['fitness'] = score
         evaluate_next_genome()
     else:
-        old_draw = clone(next_draw)
-        next_draw = False
         possible_moves = get_all_possible_moves()
-        last_state = get_state()
-        print(last_state)
-        next_shape()
+        next_stone()
+        hai = input('press enter -- after getting all possible moves')
         
         for i in range(0, len(possible_moves)):
-            next_move = get_highest_rated_move(get_all_possible_moves())
+            next_move = highest_rating(get_all_possible_moves())
             possible_moves[i]['rating'] = possible_moves[i]['rating'] + next_move['rating']
         
-        load_state(last_state)
-        move = get_highest_rated_move(possible_moves)
+        move = highest_rating(possible_moves)
 
         for i in range(0, move['rotations']):
-            rotate_shape()
+            rotate_stone()
 
         if move['translation'] < 0:
-            for lefts in range(0, abs(move['translation'])):
+            for _ in range(0, abs(move['translation'])):
                 move_left()
 
         elif move['translation'] > 0:
-            for rights in range(0, move['translation']):
+            for _ in range(0, move['translation']):
                 move_right()
-
-        if (inspect_move_selection):
-            move_algorithm = move['algorithm']
-        
-        next_draw = old_draw
-
-        output()
-
-        #update_score()
     
 def get_all_possible_moves():
-    global current_shape
-
-    last_state = get_state()
+    global current_stone
     possible_moves = []
-    possible_move_ratings = []
     iterations = 0
-
     for r in range(0, 4):
-        oldX = []
-
+        old_x_positions = []
         for t in range(-5, 6):
             iterations = iterations + 1
-            load_state(last_state)
-
             for _ in range(0, r):
-                rotate_shape()
-            
+                rotate_stone()
             if t < 0:
                 for _ in range(0, abs(t)):
                     move_left()
@@ -336,21 +200,23 @@ def get_all_possible_moves():
                 for _ in range(0, t):
                     move_right()
             
-            if not contains(oldX, current_shape['x']):
-                move_down_results = move_down()
-                
-                while move_down_results['moved']:
-                    move_down_results = move_down()
-                
+            if not contains(old_x_positions, current_stone['x_position']):
+                drop_results = drop()
+    
+                while drop_results['moved']:
+                    drop_results = drop()
+                    
+                output()
+                hi = input('hello')
                 algorithm = {
-                    'rows_cleared': move_down_results['rows_cleared'],
+                    'rows_cleared': drop_results['rows_cleared'],
                     'height_weight': math.pow(get_height(), 1.5),
                     'height_cumulative': get_cumulative_height(),
                     'height_relative': get_relative_height(),
-                    'holes': get_holes(), # this getter not done TODO
-                    'roughness': get_roughness()
+                    'holes': get_holes(),
+                    'roughness': get_roughness(),
+                    'ties': 0
                 }
-
                 rating = 0
                 rating = rating + (algorithm['rows_cleared'] * genomes[current_genome]['rows_cleared'])
                 rating = rating + (algorithm['height_weight'] * genomes[current_genome]['height_weight'])
@@ -359,9 +225,8 @@ def get_all_possible_moves():
                 rating = rating + (algorithm['holes'] * genomes[current_genome]['holes'])
                 rating = rating + (algorithm['roughness'] * genomes[current_genome]['roughness'])
 
-                print('WAI ELLO THAR')
-                if move_down_results['lose']:
-                    rating = rating - 500
+                if drop_results['lose']:
+                    reset_game()
 
                 possible_moves.append({
                     'rotations': r,
@@ -370,34 +235,26 @@ def get_all_possible_moves():
                     'algorithm': algorithm
                 })
 
-                oldX.append(current_shape['x'])
-    #load_state(last_state)
+                old_x_positions.append(current_stone['x_position'])
     return possible_moves
 
-def get_highest_rated_move(moves):
+def highest_rating(moves):
     max_rating = -100000000
-    max_move = -1
     ties = []
-
     for i in range(0, len(moves)):
         if moves[i]['rating'] > max_rating:
             max_rating = moves[i]['rating']
-            max_move = i
             ties = [i]
         elif moves[i]['rating'] == max_rating:
             ties.append(i)
-    
     move = moves[ties[0]]
     move['algorithm']['ties'] = len(ties)
     return move
 
-def clone(stringed_object):
-    return stringed_object
-
-def contains(oldX, currentX):
-    idx = len(oldX) - 1
-    while idx >= 0 and len(oldX) != 0:
-        if oldX[idx] == currentX:
+def contains(old_x_positions, currentX):
+    idx = len(old_x_positions) - 1
+    while idx >= 0 and len(old_x_positions) != 0:
+        if old_x_positions[idx] == currentX:
             return True
         if idx != 0:
             idx = idx - 1
@@ -405,24 +262,10 @@ def contains(oldX, currentX):
             break
     return False
 
-def update():
-    print('aloha')
-    if current_genome != -1:
-        results = move_down()
-        if not results['moved']:
-            if results['lose']:
-                genomes[current_genome]['fitness'] = clone(score)
-                evaluate_next_genome()
-            else:
-                make_next_move()
-    else:
-        move_down()
-    output()
-    #update_score()
-
-def move_down():
-    global current_shape
-    global grid
+def drop():
+    global current_stone
+    global matrix
+    global score
 
     result = {
         'lose': False,
@@ -430,224 +273,122 @@ def move_down():
         'rows_cleared': 0
     }
 
-    remove_shape()
-    current_shape['y'] = current_shape['y'] + 1
+    remove_stone()
+    current_stone['y_position'] = current_stone['y_position'] + 1
 
-    if collides(grid, current_shape):
-        current_shape['y'] = current_shape['y'] - 1
-        apply_shape()
-        next_shape()
+    if collides(matrix, current_stone):
+        current_stone['y_position'] = current_stone['y_position'] - 1
+        set_stone()
+        next_stone()
         result['rows_cleared'] = clear_rows()
-        if collides(grid, current_shape):
+        if collides(matrix, current_stone):
             result['lose'] = True
-            reset_game()
-            print(result)
         result['moved'] = False
-    apply_shape()
-    # score = score + 1
-    # update_score()
-    output()
-
-    for i in range(0, len(grid)):
-        print(grid[i])
-        if i == 19:
-            print('\n')
-
-    name = input("PRESS ENTER")
-
+    set_stone()
+    score = score + 1
     return result
 
 def move_left():
-    global current_shape
-    global grid
+    global current_stone
+    global matrix
 
-    remove_shape()
-    current_shape['x'] = current_shape['x'] - 1
+    remove_stone()
+    current_stone['x_position'] = current_stone['x_position'] - 1
 
-    if collides(grid, current_shape) or current_shape['x'] < 0:
-        current_shape['x'] = current_shape['x'] + 1
-    apply_shape()
-
-    for i in range(0, len(grid)):
-        print(grid[i])
-        if i == 19:
-            print(grid[i], '\n')
+    if collides(matrix, current_stone) or current_stone['x_position'] < 0:
+        current_stone['x_position'] = current_stone['x_position'] + 1
+    set_stone()
 
 def move_right():
-    global current_shape
-    global grid
+    global current_stone
+    global matrix
 
-    remove_shape()
-    current_shape['x'] = current_shape['x'] + 1
-    if collides(grid, current_shape):
-        current_shape['x'] = current_shape['x'] - 1
-    apply_shape()
-
-    for i in range(0, len(grid)):
-        print(grid[i])
-        if i == 19:
-            print(grid[i], '\n')
+    remove_stone()
+    current_stone['x_position'] = current_stone['x_position'] + 1
+    if collides(matrix, current_stone):
+        current_stone['x_position'] = current_stone['x_position'] - 1
+    set_stone()
 
 def clear_rows():
-    global grid
+    global matrix
 
     clear_rows_list = []
-    for row in range(0, len(grid)):
+    for row in range(0, len(matrix)):
         empty_spaces = False
-        for col in range(0, len(grid[row])):
-            if grid[row][col] == 0:
+        for col in range(0, len(matrix[row])):
+            if matrix[row][col] == 0:
                 empty_spaces = True
         if not empty_spaces:
             clear_rows_list.append(row)
     
-    # score, can take out
-    #if len(clear_rows_list) == 1:
-    #    score = score + 400
-    #elif len(clear_rows_list) == 2:
-    #    score = score + 1000
-    #elif len(clear_rows_list) == 3:
-    #    score = score + 3000
-    #elif len(clear_rows_list) == 4:
-    #    score = score + 12000
+    if len(clear_rows_list) == 1:
+       score = score + 400
+    elif len(clear_rows_list) == 2:
+       score = score + 1000
+    elif len(clear_rows_list) == 3:
+       score = score + 3000
+    elif len(clear_rows_list) == 4:
+       score = score + 12000
     
-    cleared_rows = clone(len(clear_rows_list))
+    cleared_rows = len(clear_rows_list)
 
     for i in range(len(clear_rows_list) - 1, -1, -1):
-        grid.pop(clear_rows_list[i])
+        matrix.pop(clear_rows_list[i])
 
-    while len(grid) < 20:
-        grid.insert(0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    while len(matrix) < 20:
+        matrix.insert(0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     return cleared_rows
 
-def apply_shape():
-    global current_shape
-    global grid
+def set_stone():
+    global current_stone
+    global matrix
+    for row in range(0, len(current_stone['tetronimo'])):
+        for col in range(0, len(current_stone['tetronimo'][row])):
+            if current_stone['tetronimo'][row][col] != 0:
+                matrix[current_stone['y_position'] + row][current_stone['x_position'] + col] = current_stone['tetronimo'][row][col]
 
-    for row in range(0, len(current_shape['shape'])):
-        for col in range(0, len(current_shape['shape'][row])):
-            if current_shape['shape'][row][col] != 0:
-                grid[current_shape['y'] + row][current_shape['x'] + col] = current_shape['shape'][row][col]
+def remove_stone():
+    global current_stone
+    global matrix
+    for row in range(0, len(current_stone['tetronimo'])):
+        for col in range(0, len(current_stone['tetronimo'][row])):
+            if current_stone['tetronimo'][row][col] != 0:
+                matrix[current_stone['y_position'] + row][current_stone['x_position'] + col] = 0
 
-def remove_shape():
-    global current_shape
-    global grid
+def rotate_stone():
+    global current_stone
+    global matrix
+    remove_stone()
+    current_stone['tetronimo'] = rotate(current_stone['tetronimo'], 1)
+    if collides(matrix, current_stone):
+        current_stone['tetronimo'] = rotate(current_stone['tetronimo'], 3)
+    set_stone()
 
-    for row in range(0, len(current_shape['shape'])):
-        for col in range(0, len(current_shape['shape'][row])):
-            if current_shape['shape'][row][col] != 0:
-                grid[current_shape['y'] + row][current_shape['x'] + col] = 0
-
-def rotate_shape():
-    global current_shape
-    global grid
-
-    remove_shape()
-    current_shape['shape'] = rotate(current_shape['shape'], 1)
-    if collides(grid, current_shape):
-        current_shape['shape'] = rotate(current_shape['shape'], 3)
-    apply_shape()
-
-def next_shape():
-    global grid
-    global bag
-    global bag_index
-    global random_seed
-    global tetris_shapes
-    global current_shape
-    global upcoming_shape
-
-    bag_index = bag_index + 1
-    print(bag_index)
-    if len(bag) == 0 or bag_index == len(bag):
-        generate_bag()
-        print('in condition 1')
-    if bag_index == (len(bag) - 1):
-        previous_seed = random_seed
-        upcoming_shape = tetris_shapes[random_key(tetris_shapes)]
-        random_seed = previous_seed
-        print('in condition 2')
-    else:
-        upcoming_shape = tetris_shapes[bag[bag_index + 1]]
-        print('in condition 3')
-    
-    print(upcoming_shape)
-    
-    current_shape['shape'] = tetris_shapes[bag[bag_index]]
-    current_shape['x'] = math.floor(len(grid[0]) / 2) - math.ceil(len(current_shape['shape'][0]) / 2)
-    current_shape['y'] = 0
-    print(current_shape)
-
-def generate_bag():
-    global bag
-    global tetris_shapes
-    global bag_index
-    bag = [None, None, None, None, None, None, None]
-    contents = ""
-    for i in range(0, 7):
-        tetronimo = random_key(tetris_shapes)
-        while (contents.find(tetronimo) != -1):
-            tetronimo = random_key(tetris_shapes)
-        bag[i] = tetronimo
-        contents = contents + tetronimo
-    bag_index = 0
-
-def random_key(obj):
-    global random_seed
-
-    list_shapes = []
-
-    for key in obj.keys():
-        list_shapes.append(key)
-
-    random_seed = (random_seed * 9301 + 49297) % 233280
-    random = random_seed / 233280
-    idx = math.floor(random * len(list_shapes))
-    return list_shapes[idx]
+def next_stone():
+    global current_stone
+    current_stone['tetronimo'] = random.choice(list(tetris_shapes.values()))
+    current_stone['x_position'] = math.floor(len(matrix[0]) / 2) - math.ceil(len(current_stone['tetronimo'][0]) / 2)
+    current_stone['y_position'] = 0
 
 def reset_game():
-    # score = 0
-    global grid
+    global score
+    global matrix
     global moves_taken
-
-    print('this just happened')
-
-    grid = [
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0]
-    ]
+    score = 0
+    print('You\'ve lost! Resetting the matrix. . .')
+    matrix = clear_matrix
     moves_taken = 0
-    generate_bag()
-    next_shape()
+    next_stone()
 
-def collides(grid, this_shape):
-    for row in range(0, len(this_shape['shape'])):
-        for col in range(0, len(this_shape['shape'][row])):
-            if this_shape['shape'][row][col] != 0:
+def collides(matrix, this_shape):
+    for row in range(0, len(this_shape['tetronimo'])):
+        for col in range(0, len(this_shape['tetronimo'][row])):
+            if this_shape['tetronimo'][row][col] != 0:
                 try:
-                    if (grid[this_shape['y'] + row] == None) or (grid[this_shape['y'] + row][this_shape['x'] + col] == None) or (grid[this_shape['y'] + row][this_shape['x'] + col] != 0):
-                        print('it returned true')
+                    if (matrix[this_shape['y_position'] + row] == None) or (matrix[this_shape['y_position'] + row][this_shape['x_position'] + col] == None) or (matrix[this_shape['y_position'] + row][this_shape['x_position'] + col] != 0):
                         return True
                 except IndexError:
-                    print("indexerror returned true")
                     return True
     return False
 
@@ -663,94 +404,82 @@ def transpose(array):
     return transposed_array
 
 def get_height():
-    global grid
-    remove_shape()
+    global matrix
+    remove_stone()
     peaks = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    for row in range(0, len(grid)):
-        for col in range(0, len(grid[row])):
-            if grid[row][col] != 0 and peaks[col] == 20:
+    for row in range(0, len(matrix)):
+        for col in range(0, len(matrix[row])):
+            if matrix[row][col] != 0 and peaks[col] == 20:
                 peaks[col] = row
-    apply_shape()
+    set_stone()
     return 20 - min(peaks)
 
 def get_cumulative_height():
-    global grid
-    remove_shape()
+    global matrix
+    remove_stone()
     peaks = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    for row in range(0, len(grid)):
-        for col in range(0, len(grid[row])):
-            if grid[row][col] != 0 and peaks[col] == 20:
+    for row in range(0, len(matrix)):
+        for col in range(0, len(matrix[row])):
+            if matrix[row][col] != 0 and peaks[col] == 20:
                 peaks[col] = row
     total_height = 0
     for i in range(0, len(peaks)):
         total_height = total_height + 20 - peaks[i]
-    apply_shape()
+    set_stone()
     return total_height
 
 def get_relative_height():
-    remove_shape()
+    remove_stone()
     peaks = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    for row in range(0, len(grid)):
-        for col in range(0, len(grid[row])):
-            if grid[row][col] != 0 and peaks[col] == 20:
+    for row in range(0, len(matrix)):
+        for col in range(0, len(matrix[row])):
+            if matrix[row][col] != 0 and peaks[col] == 20:
                 peaks[col] = row
-    apply_shape()
+    set_stone()
     return max(peaks) - min(peaks)
 
 def get_holes():
-    global grid
-    remove_shape()
+    global matrix
+    remove_stone()
     peaks = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    for row in range(0, len(grid)):
-        for col in range(0, len(grid[row])):
-            if grid[row][col] != 0 and peaks[col] == 20:
+    for row in range(0, len(matrix)):
+        for col in range(0, len(matrix[row])):
+            if matrix[row][col] != 0 and peaks[col] == 20:
                 peaks[col] = row
     holes = 0
     for x in range(0, len(peaks)):
-        for y in range(peaks[x], len(grid)):
-            if grid[y][x] == 0:
+        for y in range(peaks[x], len(matrix)):
+            if matrix[y][x] == 0:
                 holes = holes + 1
-    apply_shape()
+    set_stone()
     return holes
 
 def get_roughness():
-    remove_shape()
+    remove_stone()
     peaks = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
-    for row in range(0, len(grid)):
-        for col in range(0, len(grid[row])):
-            if grid[row][col] != 0 and peaks[col] == 20:
+    for row in range(0, len(matrix)):
+        for col in range(0, len(matrix[row])):
+            if matrix[row][col] != 0 and peaks[col] == 20:
                 peaks[col] = row
     roughness = 0
     differences = []
     for i in range(0, len(peaks) - 1):
         roughness = roughness + abs(peaks[i] - peaks[i + 1])
         differences.append(abs(peaks[i] - peaks[i + 1]))
-    apply_shape()
+    set_stone()
     return roughness
 
 def output():
-    global next_draw
-    global grid
-    if next_draw:
-        for i in range(0, len(grid)):
-            if i == 0:
-                print(grid[i])
-            else:
-                print('\n')
-                print(grid[i])
+    global matrix
+    for i in range(0, len(matrix)):
+        if i == 0:
+            print(matrix[i])
+        else:
+            print(matrix[i])
 
-def set_interval(func, sec):
-    def func_wrapper():
-        set_interval(func, sec)
-        func()
-    t = threading.Timer(sec, func_wrapper)
-    t.start()
-    return t
+initialize_population()
 
-def loop():
-    update()
-    #set_interval(loop, speed)
-
+'''
 class Tetris:
     def __init__(self):
         pygame.init()
@@ -791,8 +520,8 @@ class Tetris:
         return False
     
     def new_board(self):
-        global grid
-        board = grid
+        global matrix
+        board = matrix
         return board
 
     def right_msg(self, msg, off_x, off_y):
@@ -965,3 +694,4 @@ if __name__ == '__main__':
     game = Tetris()
 
 game.run()
+'''
