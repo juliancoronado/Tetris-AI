@@ -12,11 +12,13 @@ Alexander Truong alexbt1992@csu.fullerton.edu
 Yinglin Wen ywen1306@csu.fullerton.edu
 
 
-How to run the Tetris Game in terminal :
-  $ cd *folder destination where you put*
-  $ python Tetris.py
+How to run the Tetris Game in terminal :  
+
+    $ cd *folder destination where you put*
+    $ python Tetris.py
 
 
-How to run the Genetic Algorithm in terminal: 
-  $ cd *folder destination where you put*
-  $ python Tetris.py
+How to run the Genetic Algorithm in terminal:  
+
+    $ cd *folder destination where you put*
+    $ python Tetris.py
