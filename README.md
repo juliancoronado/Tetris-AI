@@ -17,11 +17,11 @@ Group Members:
 
 How to run the Tetris Game in terminal :  
 
-    `$ cd *folder destination where you put*`
-    `$ python Tetris.py`
+    $ cd *folder destination where you put*
+    $ python Tetris.py
 
 
 How to run the Genetic Algorithm in terminal:  
 
-    `$ cd *folder destination where you put*`
-    `$ python Tetris.py`
+    $ cd *folder destination where you put*
+    $ python Tetris.py
